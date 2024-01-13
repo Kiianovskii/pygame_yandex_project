@@ -36,8 +36,11 @@ def terminate():
 
 # show health bar func
 def show_health_bar(health, x, y):
-    pygame.draw.rect(screen, (255, 0, 255), (x, y, 100, 50))
     part_of_health = health / 100
+    pygame.draw.rect(screen, (0, 0, 255), (x, y, 100, 50))
+    pygame.draw.rect(screen, (0, 255, 0),
+                     (x, y, 100 * part_of_health, 50))
+
 
 
 # image load func

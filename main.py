@@ -27,16 +27,17 @@ if __name__ == '__main__':
     # drow bg
     draw_bg()
 
-    # show health bars
-    print('ppp')
-    show_health_bar(hero.health, 50, 50)
-    show_health_bar(enemy.health, 500, 50)
-
     # draw hero
     hero.draw(screen, enemy)
 
     # draw enemy
     enemy.draw(screen, hero)
+
+    # show hero health bar
+    show_health_bar(hero.health, 50, 50)
+
+    # show enemy health bar
+    show_health_bar(enemy.health, 500, 50)
 
     # main loop
     running = True
@@ -79,4 +80,3 @@ if __name__ == '__main__':
         clock.tick(FPS)
         # pygame.display.update()
     pygame.quit()
-
