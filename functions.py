@@ -2,24 +2,9 @@
 import os
 import sys
 import pygame
+from game_over import end
+from result import resultts
 
-
-# (
-#     bg_image,
-#     WINDOW_SIZE,
-#     WINDOW_HEIGHT,
-#     WINDOW_WIDHT,
-#     screen,
-#     clock,
-#     FPS
-# )
-
-
-# from classes import (
-#     Enemy,
-#     Hero,
-#     Border
-# )
 
 # drow bg
 def draw_bg():
@@ -35,22 +20,21 @@ def terminate():
 
 
 # show health bar func
-def show_health_bar(health, x, y):
+def show_health_bar(health, x):
     part_of_health = health / 100
-    pygame.draw.rect(screen, (0, 0, 255), (x, y, 100, 50))
+    pygame.draw.rect(screen, (255, 0, 0), (x, 50, 420, 40))
     pygame.draw.rect(screen, (0, 255, 0),
-                     (x, y, 100 * part_of_health, 50))
-
+                     (x, 50, 450 * part_of_health, 40))
 
 
 # image load func
-def load_image(name, colorkey=None):
-    fullname = os.path.join('data', name)
-    # если файл не существует, то выходим
+def load_image(name, size=None, colorkey=-1):
+    fullname = os.path.join(name)
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
         sys.exit()
     image = pygame.image.load(fullname)
+
     if colorkey is not None:
         image = image.convert()
         if colorkey == -1:
@@ -58,8 +42,34 @@ def load_image(name, colorkey=None):
         image.set_colorkey(colorkey)
     else:
         image = image.convert_alpha()
+    if size is not None:
+        image = pygame.transform.scale(image, size)
     return image
 
+
+# win func
+def win():
+    resultts()
+
+
+# lose func
+def lose():
+    end()
+
+
+# update screen
+def update(hero, enemy):
+    hero.draw(screen, enemy)
+    enemy.draw(screen, hero)
+    show_health_bar(hero.health, 50)
+    show_health_bar(enemy.health, 500)
+    draw_bg()
+
+
+def show_text(txt, font, x):
+    # text = font.render(txt, True, (150, 150, 150))
+    # screen.blit(text, (x, 50))
+    pass
 
 # show start screen func
 def start_screen():
@@ -117,13 +127,10 @@ clock = pygame.time.Clock()
 screen = pygame.display.set_mode(WINDOW_SIZE)
 
 # bg image
-bg_image = pygame.image.load('bg.jpg').convert_alpha()
+bg_image = pygame.image.load('pic/bg_game.gif').convert_alpha()
 
-#
-# background = pygame.Surface(WINDOW_SIZE)
-#
-# #
-# color = 'white'
-#
-# #
-# background.fill(color)
+# enemy speed
+enemy_speed = 2
+
+# set font
+font = pygame.font.Font(None, 36)
