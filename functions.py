@@ -2,8 +2,7 @@
 import os
 import sys
 import pygame
-from game_over import end
-from result import resultts
+from result import *
 
 
 # drow bg
@@ -48,8 +47,8 @@ def load_image(name, size=None, colorkey=-1):
 
 
 # win func
-def win():
-    resultts()
+def win(winnnig_bals):
+    resultts(winnnig_bals)
 
 
 # lose func
@@ -134,3 +133,5 @@ enemy_speed = 2
 
 # set font
 font = pygame.font.Font(None, 36)
+
+

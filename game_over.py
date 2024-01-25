@@ -4,12 +4,14 @@ import sys
 
 
 class PicAppear(pygame.sprite.Sprite):
+    # Здесь выдвигается окно, то есть класс представляет спрайт (графический объект), который будет двигаться по экрану.
     def __init__(self):
         super().__init__()
         self.image = PicAppear.load_image('pic/bg_end.png')
         self.rect = self.image.get_rect(center=(100, 390))  # Измененные координаты центра
         self.speed = 200  # Скорость в пикселях в секунду
 
+    # update обновляет положение спрайта на каждом кадре в зависимости от прошедшего времени (dt)
     def update(self, dt):
         pixels_to_move = self.speed * dt / 1000  # Переводим скорость в пикселях за кадр
         if self.rect.right < 1200:  # Проверка, чтобы не выйти за правый край
@@ -29,19 +31,27 @@ class PicAppear(pygame.sprite.Sprite):
 
 
 class ResultButton(pygame.sprite.Sprite):
+    # создает кнопку,чтоб перейти в следующее окно
+    # Класс ResultButton создает объект кнопки с изображением и текстом.
+    # изображение кнопки, его положение (rect), шрифт и текст.
+    # Также создаются текст и прямоугольник для отображения
+    # Метод update_text позволяет обновить текст на кнопке.
     def __init__(self):
         super().__init__()
         self.image = pygame.image.load('pic/btn.PNG')
         self.rect = self.image.get_rect(center=(600, 550))
         self.font = pygame.font.Font(None, 36)
-        self.text = '0-0'
+        self.text = 'Закончить'
         self.rendered_text = self.font.render(self.text, True, (255, 255, 255))
-        # self.text_rect = self.rendered_text.get_rect(self.rect.center)
+        self.text_rect = self.rendered_text.get_rect(center=self.rect.center)
 
     def update_text(self, new_text):
         self.text = new_text
         self.rendered_text = self.font.render(self.text, True, (255, 255, 255))
-        self.text_rect = self.rendered_text.get_rect(center=1500)
+        self.text_rect = self.rendered_text.get_rect(center=self.rect.center)
+
+    def is_clicked(self):
+        return end()
 
 
 def end():
@@ -51,7 +61,6 @@ def end():
     result_button = ResultButton()
     all_sprites.add(car, result_button)
 
-    pygame.init()
     screen = pygame.display.set_mode((1200, 700))
     pygame.display.set_caption("Game over")
 
@@ -65,7 +74,7 @@ def end():
                 sys.exit()
 
         dt = clock.tick(60)  # Получаем прошедшее время с момента последнего вызова
-        all_sprites.update(dt)
+        all_sprites.update(dt)  # Вызываем метод update для всех спрайтов
 
         screen.fill((0, 0, 0))
         all_sprites.draw(screen)

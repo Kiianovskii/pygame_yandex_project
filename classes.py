@@ -1,18 +1,19 @@
+
 # imports
+import sys
 
 import pygame
 import pygame_gui
 from functions import *
 from time import time
+from result import PicAppear
 
 
 # game class
-
-
 class Game:
-    def __init__(self, enemy_health=100, hero_health=100):
+    def __init__(self, win_balls=100, enemy_health=100, hero_health=100):
         manager = pygame_gui.UIManager(WINDOW_SIZE)
-        hero = Hero(100, 410, hero_health)
+        hero = Hero(100, 410, hero_health, win_balls)
         enemy = Enemy(700, 410, enemy_speed, enemy_health)
         pygame.display.set_caption('Game')
         draw_bg()
@@ -20,8 +21,11 @@ class Game:
         enemy.draw(screen, hero)
         show_health_bar(hero.health, 50)
         show_health_bar(enemy.health, 700)
-        running = True
-        while running:
+
+        # Добавьте атрибуты для отслеживания состояния игры
+        self.win_condition = False
+        self.lose_condition = False
+        while not (self.win_condition or self.lose_condition):
             # move fighters
             hero.draw(screen, enemy)
             enemy.draw(screen, hero)
@@ -48,16 +52,19 @@ class Game:
             pygame.display.flip()
             clock.tick(FPS)
             # pygame.display.update()
+        if self.win_condition:
+            PicAppear() 
 
 
 # hero class
 class Hero(pygame.sprite.Sprite):
-    def __init__(self, x, y, hearth):
+    def __init__(self, x, y, hearth, win_balls):
         self.is_dead = False
         self.win = False
         self.health = hearth
         image = None
         self.image = image
+        self.win_balls = win_balls
 
         self.x = x
         self.y = y
@@ -75,16 +82,7 @@ class Hero(pygame.sprite.Sprite):
         self.start_attacking = time()
 
         self.score = 0
-
-        # # make sprite
-        # hero_sprite = pygame.sprite.Sprite()
-        # # sprite view
-        # hero_sprite.image = load_image(self.image)
-        # # sprite size
-        # hero_sprite.rect = hero_sprite.image.get_rect()
-        # # add sprite to group
-        # all_sprites.add(hero_sprite)
-
+        # алинина часть кода с анимацией
         self.animation_frames = [load_image(f"pic/hero/hero_walk/hero_walk_{i}.png") for i in range(8)]
         self.frame_index = 0
         self.image = self.animation_frames[self.frame_index]
@@ -149,23 +147,29 @@ class Hero(pygame.sprite.Sprite):
         show_health_bar(target.health, 700)
         show_text(target.score, font, 730)
 
-        # pygame.draw.rect(surface, (255, 255, 255), self.rect)
+
+# pygame.draw.rect(surface, (255, 255, 255), self.rect)
 
         # change attacking parameter
         now = time()
         if now - self.start_attacking >= 2:
             self.attacking = False
+
         surface.blit(self.image, self.rect.topleft)  # Draw hero image
 
         # Update animation frame
         self.frame_index = (self.frame_index + 1) % len(self.animation_frames)
         self.image = self.animation_frames[self.frame_index]
-        # update(self, target)
-        pygame.display.flip()
+
+        # Проверка на победу
+        if target.health <= 0:
+            win(self.win_balls)
+            self.win_condition = True
 
     # move left func
     def l_move(self):
         self.vx = -self.speed
+        # алинин код
         self.image = pygame.transform.flip(self.animation_frames[self.frame_index], True, False)
 
     # move right func
@@ -208,7 +212,7 @@ class Hero(pygame.sprite.Sprite):
             if r_attack_rect.colliderect(target.rect):
                 target.health -= 1
             if target.health <= 0:
-                win()
+                win(self.win_balls)
 
     # right attack func
     def l_attack(self, target):
@@ -225,7 +229,7 @@ class Hero(pygame.sprite.Sprite):
                 target.health -= 1
 
             if target.health <= 0:
-                win()
+                win(self.win_balls)
 
 
 # enemy class
@@ -240,7 +244,7 @@ class Enemy(pygame.sprite.Sprite):
         image = None
 
         # Sprite constructor
-        # super().__init__(*group)
+        # super().init(*group)
 
         # set image
         self.image = image
@@ -270,68 +274,71 @@ class Enemy(pygame.sprite.Sprite):
 
         # set score counter
         self.score = 0
+        # алинина часть кода с анимацией
         self.animation_frames = [load_image(f"pic/enemy/enemy_walk/enemy_walk_{i}.png") for i in range(8)]
         self.frame_index = 0
         self.image = self.animation_frames[self.frame_index]
         self.rect = self.image.get_rect()
 
+
     def draw(self, surface, target):
-        # draw enemy
-        # pygame.draw.rect(surface, (0, 0, 0), self.rect)
-        # enemy movement
-        if self.health > 0:
-            if not self.attacking:
-                if target.rect.centerx > self.rect.centerx:
-                    if abs(target.rect.centerx - self.rect.centerx) > 150:
-                        self.r_move()
+            # draw enemy
+            # pygame.draw.rect(surface, (0, 0, 0), self.rect)
+            # enemy movement
+            if self.health > 0:
+                if not self.attacking:
+                    if target.rect.centerx > self.rect.centerx:
+                        if abs(target.rect.centerx - self.rect.centerx) > 150:
+                            self.r_move()
+                        else:
+                            self.r_attack(target)
                     else:
-                        self.r_attack(target)
+                        if abs(self.rect.centerx - target.rect.centerx) > 150:
+                            self.l_move()
+                        else:
+                            self.l_attack(target)
                 else:
-                    if abs(self.rect.centerx - target.rect.centerx) > 150:
+                    if target.rect.centerx > self.rect.centerx:
                         self.l_move()
                     else:
-                        self.l_attack(target)
-            else:
-                if target.rect.centerx > self.rect.centerx:
-                    self.l_move()
-                else:
-                    self.r_move()
-        elif not self.win:
-            self.win = True
-            self.score += 1
-            print(target.score)
+                        self.r_move()
+            elif not self.win:
+                self.win = True
+                self.score += 1
+                print(target.score)
 
-        # check out of screen
-        if self.rect.left + self.vx < 0:
+            # check out of screen
+            if self.rect.left + self.vx < 0:
+                self.vx = 0
+            if self.rect.right + self.vx > WINDOW_WIDHT:
+                self.vx = 0
+            # change coords
+            self.x += self.vx
+            self.y += self.vy
+            # movw rect
+            self.rect = pygame.Rect((self.x, self.y, 100, 200))
+            # stop move
             self.vx = 0
-        if self.rect.right + self.vx > WINDOW_WIDHT:
-            self.vx = 0
-        # change coords
-        self.x += self.vx
-        self.y += self.vy
-        # movw rect
-        self.rect = pygame.Rect((self.x, self.y, 100, 200))
-        # stop move
-        self.vx = 0
-        self.vy = 0
-        # draw
-        # draw_bg()
-        # pygame.draw.rect(surface, (0, 0, 0), self.rect)
-        # change attacking parameter
-        now = time()
-        if now - self.start_attacking >= 1:
-            self.attacking = False
-        # update(self, target)
-        pygame.display.flip()
-        surface.blit(self.image, self.rect.topleft)  # Draw enemy image
+            self.vy = 0
+            # draw
+            # draw_bg()
+            # pygame.draw.rect(surface, (0, 0, 0), self.rect)
+            # change attacking parameter
+            now = time()
+            if now - self.start_attacking >= 1:
+                self.attacking = False
+            # update(self, target)
+            pygame.display.flip()
+            surface.blit(self.image, self.rect.topleft)  # Draw enemy image
 
-        # Update animation frame
-        self.frame_index = (self.frame_index + 1) % len(self.animation_frames)
-        self.image = self.animation_frames[self.frame_index]
+            # АЛинина часть кода с аниамцией
+            self.frame_index = (self.frame_index + 1) % len(self.animation_frames)
+            self.image = self.animation_frames[self.frame_index]
 
     # move left func
     def l_move(self):
         self.vx = -self.speed
+        # Алинина часть кода с аниамцией
         self.image = pygame.transform.flip(self.animation_frames[self.frame_index], True, False)
 
     # move right func
@@ -372,6 +379,8 @@ class Enemy(pygame.sprite.Sprite):
         pygame.display.flip()
         if r_attack_rect.colliderect(target.rect):
             target.health -= 10
+        if target.health <= 0:
+            lose()
 
     # right attack func
     def l_attack(self, target):
@@ -384,12 +393,14 @@ class Enemy(pygame.sprite.Sprite):
         pygame.display.flip()
         if l_attack_rect.colliderect(target.rect):
             target.health -= 10
+        if target.health <= 0:
+            lose()
 
 
 # border class
 class Border(pygame.sprite.Sprite):
     # init func
-    def __init__(self, x1, y1, x2, y2):
+    def init(self, x1, y1, x2, y2):
         super().__init__(all_sprites)
         # vertical border
         if x1 == x2:

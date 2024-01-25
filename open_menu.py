@@ -4,12 +4,18 @@ import os
 from pygame import mixer
 from levels import NewGameWindow
 
+# Инициализация Pygame
 pygame.init()
-mixer.init()
+# Инициализация модуля звука.
+mixer.init()  
 screen_width = 1210
 screen_height = 705
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Меню")
+
+# Функция load_image:
+# Загружает изображение из файла.
+# Позволяет указать размер и цветовой ключ для обработки изображения.
 
 
 def load_image(name, size=None, colorkey=-1):
@@ -30,6 +36,10 @@ def load_image(name, size=None, colorkey=-1):
         image = pygame.transform.scale(image, size)
     return image
 
+# button_draw:
+# Рисует кнопку с текстом на заданной поверхности (where).
+# Позволяет определить цвет кнопки, изменение цвета при наведении, размер и положение кнопки.
+
 
 def button_draw(where, color, is_used_color, x, y, width, height, text, color_text):
     rect_x = width / 2
@@ -37,10 +47,11 @@ def button_draw(where, color, is_used_color, x, y, width, height, text, color_te
     rect_meaures = (width, height)
     button_rect = pygame.Rect(x - rect_x, y - rect_y, *rect_meaures)
     is_used = button_rect.collidepoint(pygame.mouse.get_pos())
-
+    # is_used устанавливается в True, если текущее положение указателя мыши (pygame.mouse.get_pos()) 
+    # находится в пределах button_rect, что означает, что кнопка нажата.
     change_color = is_used_color if is_used else color
+    # Рисуются линии границы кнопки, создавая эффект рамки.
     pygame.draw.rect(where, change_color, (x - rect_x, y - rect_y, *rect_meaures))
-
     pygame.draw.rect(where, (229, 94, 88), (x - rect_x, y - rect_y, width, height // 2))
 
     # Draw the border lines
@@ -48,19 +59,25 @@ def button_draw(where, color, is_used_color, x, y, width, height, text, color_te
     pygame.draw.line(where, (0, 0, 0), (x + rect_x - 2, y - rect_y + 2), (x + rect_x - 2, y + rect_y - 2), 4)
     pygame.draw.line(where, (0, 0, 0), (x - rect_x + 2, y - rect_y + 2), (x + rect_x - 2, y - rect_y + 2), 4)
     pygame.draw.line(where, (0, 0, 0), (x - rect_x + 2, y - rect_y + 2), (x - rect_x + 2, y + rect_y - 2), 4)
-
+    # text_where создает изображение текста с использованием заданного шрифта (font), цвета(color_text)текста (text)
     text_where = font.render(text, True, color_text)
     text_rect = text_where.get_rect(center=(x, y))
     where.blit(text_where, text_rect)
 
 
 # украшалки:
-
-
+# Загрузка фоновых изображений (background_image) для главного меню и меню настроек.
+# Инициализация шрифта и его размера.
 background_image = pygame.image.load("pic/bg_naruto1.png")
 background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
 
 font = pygame.font.Font(None, 36)
+
+
+# Класс SettingsWindow:
+# Представляет окно настроек.
+# Инициализирует атрибуты для состояния музыки и возврата в меню.
+# Метод run отвечает за отображение окна настроек и обработку событий.
 
 
 class SettingsWindow:
@@ -101,10 +118,12 @@ class SettingsWindow:
             back_button_color = '#cc1b00'  # Цвет темно-серый
 
             # Изменен размер и положение кнопки "Звук"
-            button_draw(self.screen, sound_button_color, '#FFBA00', screen_width // 2, 300, 200, 50, 'Звук', '#FFFDD0')
+            button_draw(self.screen, sound_button_color, '#FFBA00', screen_width // 2, 300, 200, 
+                        50, 'Звук', '#FFFDD0')
 
             # Изменен размер и положение кнопки "Назад"
-            button_draw(self.screen, back_button_color, '#380101', screen_width // 2, 400, 170, 30, 'Назад',
+            button_draw(self.screen, back_button_color, '#380101', screen_width // 2, 400, 
+                        170, 30, 'Назад',
                         (255, 255, 255))
 
             mouse()
@@ -115,7 +134,9 @@ class SettingsWindow:
             if self.returned_to_menu:
                 self.returned_to_menu = True
                 running = False
-
+                
+    # Методы toggle_music и go_back_to_menu в SettingsWindow:
+    # toggle_music: Включает или выключает музыку при нажатии на соответствующую кнопку
     def toggle_music(self):
         music_file = 'pic/grey_night.mp3'
         if not self.music_playing:
@@ -128,9 +149,13 @@ class SettingsWindow:
         else:
             mixer.music.stop()
             self.music_playing = False
-
+            
+    # go_back_to_menu: Переводит пользователя обратно в главное меню.
     def go_back_to_menu(self):
         self.returned_to_menu = True
+
+#  mouse:
+# Отображает изображение курсора мыши на игровом окне.
 
 
 def mouse():
@@ -138,8 +163,10 @@ def mouse():
     pygame.mouse.set_visible(False)
     mouse_x, mouse_y = pygame.mouse.get_pos()
     screen.blit(cursor_image, (mouse_x - cursor_image.get_width() // 2, mouse_y - cursor_image.get_height() // 2))
-
-
+    
+    
+# Класс MainMenu:
+# Представляет главное меню.
 class MainMenu:
     def __init__(self):
         self.background_image = pygame.image.load("pic/bg_naruto1.png")
@@ -170,19 +197,19 @@ class MainMenu:
                         self.running = False
 
             screen.blit(self.background_image, (0, 0))
-            button_draw(screen, ('#d9342b'), ('#FFBA00'), screen_width // 2, 200, 200, 50, words[0], ('#FFFDD0'))
-            button_draw(screen, ('#d9342b'), ('#FFBA00'), screen_width // 2, 200 + button_spacing, 200, 50, words[1],
+            # Три раза вызывается функция button_draw для отображения трех кнопок главного меню.
+            # Каждый вызов соответствует одной из трех кнопок
+            button_draw(screen, ('#d9342b'), ('#FFBA00'), screen_width // 2, 200, 200, 
+                        50, words[0], ('#FFFDD0'))
+            button_draw(screen, ('#d9342b'), ('#FFBA00'), screen_width // 2, 200 + button_spacing, 
+                        200, 50, words[1],
                         ('#FFFDD0'))
-            button_draw(screen, ('#d9342b'), ('#FFBA00'), screen_width // 2, 200 + 2 * button_spacing, 200, 50,
+            button_draw(screen, ('#d9342b'), ('#FFBA00'), screen_width // 2, 200 + 2 * button_spacing, 
+                        200, 50,
                         words[2], ('#FFFDD0'))
 
             mouse()
+        # Обновление экрана с помощью pygame.display.flip().
+        # Управление временем с помощью pygame.time.Clock().tick(60) для управления скоростью обновления.
             pygame.display.flip()
             pygame.time.Clock().tick(60)
-
-
-# if __name__ == '__main__':
-#     main_w = MainMenu()
-#     main_w.run()
-#     pygame.quit()
-#     sys.exit()
